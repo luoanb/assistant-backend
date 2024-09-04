@@ -22,20 +22,19 @@ export function setupSwagger(
     .setTitle(name)
     .setDescription(`${name} API document`)
     .setVersion('1.0')
+    .addSecurity(API_SECURITY_AUTH, {
+      description: '输入令牌（Enter the token）',
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+    }).build()
 
   // auth security
-  documentBuilder.addSecurity(API_SECURITY_AUTH, {
-    description: '输入令牌（Enter the token）',
-    type: 'http',
-    scheme: 'bearer',
-    bearerFormat: 'JWT',
-  })
-
-  const document = SwaggerModule.createDocument(app, documentBuilder.build(), {
+  // documentBuilder.
+  const document = SwaggerModule.createDocument(app, documentBuilder, {
     ignoreGlobalPrefix: false,
     extraModels: [CommonEntity, ResOp, Pagination, TreeResult],
   })
-
   SwaggerModule.setup(path, app, document, {
     swaggerOptions: {
       persistAuthorization: true, // 保持登录
