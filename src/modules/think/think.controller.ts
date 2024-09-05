@@ -8,7 +8,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiOperation, ApiTags } from '@nestjs/swagger'
 
 import { ApiResult } from '~/common/decorators/api-result.decorator'
 import { IdParam } from '~/common/decorators/id-param.decorator'
@@ -20,8 +20,8 @@ import { Resource } from '~/modules/auth/decorators/resource.decorator'
 import { ResourceGuard } from '~/modules/auth/guards/resource.guard'
 import { TodoEntity } from '~/modules/todo/todo.entity'
 
-import { TodoDto, TodoQueryDto, TodoUpdateDto } from './todo.dto'
-import { TodoService } from './todo.service'
+import { TodoDto, TodoQueryDto, TodoUpdateDto } from './think.dto'
+import { TodoService } from './think.service'
 
 export const permissions = definePermission('todo', {
   LIST: 'list',
@@ -33,7 +33,6 @@ export const permissions = definePermission('todo', {
 
 @ApiTags('Business - Todo模块')
 @UseGuards(ResourceGuard)
-@ApiBearerAuth()
 @Controller('todos')
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
