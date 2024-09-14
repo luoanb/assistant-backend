@@ -1,11 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Column, Entity, PrimaryColumn } from 'typeorm'
 
-@Entity('concept')
-export class ConceptEntity {
-  @PrimaryColumn()
-  id: string
-
+export class ConceptEntityBase {
   @Column()
   @ApiProperty({ description: '父键: 存储概念名称' })
   parent: string
@@ -57,11 +53,13 @@ export class ConceptEntity {
   executable: boolean
 }
 
-@Entity('concept_centent')
-export class ConceptContentEntity {
+@Entity('concept')
+export class ConceptEntity extends ConceptEntityBase {
   @PrimaryColumn()
-  key: string
+  id: string
+}
 
+export class ConceptContentBase {
   /**
    * 完整描述
    */
@@ -72,4 +70,10 @@ export class ConceptContentEntity {
   @Column()
   @ApiProperty({ description: '执行的描述' })
   execut: string
+}
+
+@Entity('concept_centent')
+export class ConceptContentEntity extends ConceptContentBase {
+  @PrimaryColumn()
+  id: string
 }

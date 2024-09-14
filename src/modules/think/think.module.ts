@@ -2,15 +2,15 @@ import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
 import { TodoController } from './think.controller'
-import { TodoEntity } from './think.entity'
-import { TodoService } from './think.service'
+import { ConceptContentEntity, ConceptEntity } from './think.entity'
+import { ThinkService } from './think.service'
 
-const services = [TodoService]
+const services = [ThinkService]
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TodoEntity])],
+  imports: [TypeOrmModule.forFeature([ConceptEntity, ConceptContentEntity])],
   controllers: [TodoController],
   providers: [...services],
   exports: [TypeOrmModule, ...services],
 })
-export class TodoModule {}
+export class ThinkModule { }

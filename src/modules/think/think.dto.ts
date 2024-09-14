@@ -1,14 +1,13 @@
-import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger'
-import { IsString } from 'class-validator'
+import { IntersectionType, PartialType } from '@nestjs/swagger'
 
 import { PagerDto } from '~/common/dto/pager.dto'
 
-export class TodoDto {
-  @ApiProperty({ description: '名称' })
-  @IsString()
-  value: string
+import { ConceptContentBase, ConceptEntityBase } from './think.entity'
+
+export class ConceptDto extends ConceptEntityBase {
+  contentData: ConceptContentBase
 }
 
-export class TodoUpdateDto extends PartialType(TodoDto) {}
+export class ConceptUpdateDto extends PartialType(ConceptDto) { }
 
-export class TodoQueryDto extends IntersectionType(PagerDto, TodoDto) {}
+export class ConceptQueryDto extends IntersectionType(PagerDto, ConceptDto) { }
