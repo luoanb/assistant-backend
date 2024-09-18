@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Post,
   Query,
   UseGuards,
@@ -10,7 +11,6 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 
 import { ApiResult } from '~/common/decorators/api-result.decorator'
-import { IdParam } from '~/common/decorators/id-param.decorator'
 
 import { Pagination } from '~/helper/paginate/pagination'
 import { Perm, definePermission } from '~/modules/auth/decorators/permission.decorator'
@@ -20,7 +20,7 @@ import { ConceptEntity } from '~/modules/think/think.entity'
 
 import { AuthUser } from '../auth/decorators/auth-user.decorator'
 
-import { ConceptDto, ConceptQueryDto } from './think.dto'
+import { ConceptDto, ConceptQueryDto, ConceptTreeFreeQueryDto, ConceptTreeQueryDto } from './think.dto'
 import { ThinkService } from './think.service'
 
 export const permissions = definePermission('think', {
@@ -34,7 +34,7 @@ export const permissions = definePermission('think', {
 @ApiTags('Business - Think模块')
 @UseGuards(ResourceGuard)
 @Controller('think')
-export class TodoController {
+export class ThinkController {
   constructor(private readonly thinkService: ThinkService,
   ) { }
 
@@ -46,12 +46,13 @@ export class TodoController {
     return this.thinkService.list(dto)
   }
 
-  @Get(':id')
+  @Get(':name')
   @ApiOperation({ summary: '获取概念详情' })
   @ApiResult({ type: ConceptDto })
   @Perm(permissions.READ)
-  async info(@IdParam() id: string): Promise<ConceptDto> {
-    return this.thinkService.detail(id)
+  async info(@Param('name') name: string, @AuthUser() user: IAuthUser): Promise<ConceptDto> {
+    const key = this.thinkService.getConceptKeyByUserId2name(String(user.uid), name)
+    return this.thinkService.detail(key)
   }
 
   @Post()
@@ -72,8 +73,26 @@ export class TodoController {
   @Delete(':name')
   @ApiOperation({ summary: '删除概念' })
   @Perm(permissions.DELETE)
-  async delete(@IdParam() name: string, @AuthUser() user: IAuthUser): Promise<void> {
+  async delete(@Param('name') name: string, @AuthUser() user: IAuthUser): Promise<void> {
     const key = this.thinkService.getConceptKeyByUserId2name(String(user.uid), name)
     await this.thinkService.delete(name)
+  }
+
+  @Get('tree')
+  @ApiOperation({ summary: '获取指定概念的子列表' })
+  @ApiResult({ type: [ConceptEntity] })
+  @Perm(permissions.LIST)
+  async tree(@Query() dto: ConceptTreeQueryDto, @AuthUser() user: IAuthUser): Promise<Array<ConceptEntity>> {
+    // return this.thinkService.list(dto)
+    // return this.thinkService.
+    return this.thinkService.tree(String(user.uid), dto)
+  }
+
+  @Get('treefree')
+  @ApiOperation({ summary: '获取游离节点' })
+  @ApiResult({ type: [ConceptEntity] })
+  @Perm(permissions.LIST)
+  async treeFree(@Query() dto: ConceptTreeFreeQueryDto): Promise<Pagination<ConceptEntity>> {
+    return this.thinkService.list({ ...dto, parent: '' })
   }
 }

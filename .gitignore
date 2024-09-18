@@ -77,3 +77,5 @@ public/upload
 types/env.d.ts
 .env.development
 .env.production
+
+.assis

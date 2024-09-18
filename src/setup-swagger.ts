@@ -19,7 +19,8 @@ export function setupSwagger(
 
   const documentBuilder = new DocumentBuilder()
     .setTitle(name)
-    .setDescription(`${name} API document`)
+    .setDescription(`${name} API document
+      json: http://127.0.0.1:${port}/api-docs-json`)
     .setVersion('1.0')
     .addBearerAuth()
     // .addBearerAuth({

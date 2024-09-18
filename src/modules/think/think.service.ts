@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { In, Repository } from 'typeorm'
 
 import { paginate } from '~/helper/paginate'
 import { Pagination } from '~/helper/paginate/pagination'
@@ -8,7 +8,7 @@ import { ConceptContentEntity, ConceptEntity } from '~/modules/think/think.entit
 
 import { generateUUID } from '~/utils/tool.util'
 
-import { ConceptDto, ConceptQueryDto } from './think.dto'
+import { ConceptDto, ConceptQueryDto, ConceptTreeQueryDto } from './think.dto'
 
 @Injectable()
 export class ThinkService {
@@ -31,7 +31,7 @@ export class ThinkService {
   async list({
     page,
     pageSize,
-  }: ConceptQueryDto): Promise<Pagination<ConceptEntity>> {
+  }: Partial<ConceptQueryDto>): Promise<Pagination<ConceptEntity>> {
     return paginate(this.conceptRepository, { page, pageSize })
   }
 
@@ -50,6 +50,7 @@ export class ThinkService {
     const exist = await this.conceptRepository.exist({ where: { id: key } })
     const cententData = dto.contentData
     let contentKey = null
+    // todo 当父结点不为空且不存在时, 手动注入一个父节点
     if (!exist) {
       // 处理详情表
       let contentKey = null
@@ -131,5 +132,26 @@ export class ThinkService {
   async deleteContent(id: string) {
     const item = await this.detailContent(id)
     await this.conceptContentRepository.remove(item)
+  }
+
+  /**
+   * 获取概念树(扁平化数据)
+   */
+  async tree(userId: string, dto: ConceptTreeQueryDto) {
+    const list: ConceptEntity[] = []
+    let currentNames = [dto.name]
+    let step = dto.step
+    while (step > 0) {
+      const data = await this.conceptRepository.find({
+        where: { parent: In(currentNames), unique: userId },
+      })
+      if (data.length === 0) {
+        break
+      }
+      list.push(...data)
+      currentNames = data.map(item => item.name)
+      step--
+    }
+    return list
   }
 }

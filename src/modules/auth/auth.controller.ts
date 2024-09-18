@@ -3,6 +3,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger'
 
 import { ApiResult } from '~/common/decorators/api-result.decorator'
 import { Ip } from '~/common/decorators/http.decorator'
+import { MailerService } from '~/shared/mailer/mailer.service'
 
 import { UserService } from '../user/user.service'
 
@@ -22,12 +23,13 @@ export class AuthController {
     private authService: AuthService,
     private userService: UserService,
     private captchaService: CaptchaService,
-  ) {}
+    private mailerService: MailerService,
+  ) { }
 
   @Post('login')
   @ApiOperation({ summary: '登录' })
   @ApiResult({ type: LoginToken })
-  async login(@Body() dto: LoginDto, @Ip()ip: string, @Headers('user-agent')ua: string): Promise<LoginToken> {
+  async login(@Body() dto: LoginDto, @Ip() ip: string, @Headers('user-agent') ua: string): Promise<LoginToken> {
     await this.captchaService.checkImgCaptcha(dto.captchaId, dto.verifyCode)
     const token = await this.authService.login(
       dto.username,
@@ -41,6 +43,7 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: '注册' })
   async register(@Body() dto: RegisterDto): Promise<void> {
+    await this.mailerService.checkCode(dto.username, dto.code)
     await this.userService.register(dto)
   }
 }

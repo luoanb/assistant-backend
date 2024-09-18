@@ -10,7 +10,8 @@ export class LoginDto {
 
   @ApiProperty({ description: '密码', example: 'a123456' })
   @IsString()
-  @Matches(/^\S*(?=\S{6,})(?=\S*\d)(?=\S*[A-Za-z])\S*$/)
+  // eslint-disable-next-line regexp/no-super-linear-backtracking
+  @Matches(/^\S*(?=\S{6})(?=\S*\d)(?=\S*[A-Z])\S+$/i)
   @MinLength(6)
   password: string
 
@@ -26,13 +27,18 @@ export class LoginDto {
 }
 
 export class RegisterDto {
-  @ApiProperty({ description: '账号' })
+  @ApiProperty({ description: '邮箱' })
   @IsString()
   username: string
 
+  @ApiProperty({ description: '邮箱验证码' })
+  @IsString()
+  code: string
+
   @ApiProperty({ description: '密码' })
   @IsString()
-  @Matches(/^\S*(?=\S{6,})(?=\S*\d)(?=\S*[A-Za-z])\S*$/)
+  // eslint-disable-next-line regexp/no-super-linear-backtracking
+  @Matches(/^\S*(?=\S{6})(?=\S*\d)(?=\S*[A-Z])\S+$/i)
   @MinLength(6)
   @MaxLength(16)
   password: string
