@@ -13,6 +13,12 @@ const providers: Provider<any>[] = [
   MailerService,
 ]
 
+// function join2(...params) {
+//   const url = join(...params)
+//   console.log(url, '-----------url')
+//   return url
+// }
+
 @Module({
   imports: [
     NestMailerModule.forRootAsync({
@@ -39,4 +45,4 @@ const providers: Provider<any>[] = [
   providers,
   exports: providers,
 })
-export class MailerModule {}
+export class MailerModule { }

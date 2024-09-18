@@ -42,8 +42,15 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: '注册' })
-  async register(@Body() dto: RegisterDto): Promise<void> {
+  async register(@Body() dto: RegisterDto, @Ip() ip: string, @Headers('user-agent') ua: string): Promise<LoginToken> {
     await this.mailerService.checkCode(dto.username, dto.code)
     await this.userService.register(dto)
+    const token = await this.authService.login(
+      dto.username,
+      dto.password,
+      ip,
+      ua,
+    )
+    return { token }
   }
 }
