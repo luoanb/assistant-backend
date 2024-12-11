@@ -1,0 +1,20 @@
+import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+
+import { CategoryController } from './category.controller'
+import { CategoryEntity } from './category.entity'
+import { CategoryService } from './category.service'
+
+import { ProjectController } from './project.controller'
+import { ProjectEntity } from './project.entity'
+import { ProjectService } from './project.service'
+
+const services = [ProjectService, CategoryService]
+
+@Module({
+  imports: [TypeOrmModule.forFeature([ProjectEntity, CategoryEntity])],
+  controllers: [ProjectController, CategoryController],
+  providers: [...services],
+  exports: [TypeOrmModule, ...services],
+})
+export class ProjectModule { }

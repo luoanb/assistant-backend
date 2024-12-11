@@ -26,6 +26,7 @@ import { TasksModule } from './modules/tasks/tasks.module'
 import { ThinkModule } from './modules/think/think.module'
 import { TodoModule } from './modules/todo/todo.module'
 import { ToolsModule } from './modules/tools/tools.module'
+import { ProjectModule } from './modules/touch-project/project.module'
 import { DatabaseModule } from './shared/database/database.module'
 
 import { SocketModule } from './socket/socket.module'
@@ -81,6 +82,7 @@ import { SocketModule } from './socket/socket.module'
 
     TodoModule,
     ThinkModule,
+    ProjectModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
