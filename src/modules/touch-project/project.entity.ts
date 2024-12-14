@@ -11,7 +11,7 @@ import { CommonEntity } from '~/common/entity/common.entity'
 
 import { UserEntity } from '../user/user.entity'
 
-@Entity('touch-project')
+@Entity('touch_project')
 export class ProjectEntity extends CommonEntity {
   @Column()
   @ApiProperty({ description: '屏幕宽度' })

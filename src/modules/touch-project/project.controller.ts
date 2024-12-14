@@ -26,6 +26,8 @@ import { ProjectDto, ProjectQueryDto, ProjectUpdateDto } from './project.dto'
 import { ProjectEntity } from './project.entity'
 
 import { ProjectService } from './project.service'
+import { ProjectStatisticsEntity } from './project_statistic.entity'
+import { ProjectStatisticsService } from './project_statistic.service'
 
 export const permissions = definePermission('project', {
   LIST: 'list',
@@ -40,29 +42,31 @@ export const permissions = definePermission('project', {
 @ApiBearerAuth()
 @Controller('projects')
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService) { }
+  constructor(private readonly projectService: ProjectService, private readonly projectStatisticsService: ProjectStatisticsService) { }
 
   @Get()
   @ApiOperation({ summary: '获取项目列表' })
   @ApiResult({ type: [ProjectEntity] })
   @Perm(permissions.LIST)
-  async list(@Query() dto: ProjectQueryDto): Promise<Pagination<ProjectEntity>> {
-    return this.projectService.list(dto)
+  async list(@Query() dto: ProjectQueryDto): Promise<Pagination<ProjectStatisticsEntity>> {
+    return this.projectStatisticsService.list(dto)
   }
 
   @Get(':id')
   @ApiOperation({ summary: '获取项目详情' })
   @ApiResult({ type: ProjectEntity })
   @Perm(permissions.READ)
-  async detail(@IdParam() id: number): Promise<ProjectEntity> {
-    return this.projectService.detail(id)
+  async detail(@IdParam() id: number): Promise<ProjectStatisticsEntity> {
+    return this.projectStatisticsService.incrementViewCount(id)
   }
 
   @Post()
   @ApiOperation({ summary: '创建项目' })
   @Perm(permissions.CREATE)
   async create(@Body() dto: Omit<ProjectDto, 'userId'>, @AuthUser() user: IAuthUser): Promise<ProjectEntity> {
-    return this.projectService.create({ ...dto, userId: user.uid })
+    const item = await this.projectService.create({ ...dto, userId: user.uid })
+    await this.projectStatisticsService.incrementViewCount(item.id)
+    return item
   }
 
   @Put(':id')

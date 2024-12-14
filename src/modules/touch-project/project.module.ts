@@ -8,8 +8,9 @@ import { CategoryService } from './category.service'
 import { ProjectController } from './project.controller'
 import { ProjectEntity } from './project.entity'
 import { ProjectService } from './project.service'
+import { ProjectStatisticsService } from './project_statistic.service'
 
-const services = [ProjectService, CategoryService]
+const services = [ProjectService, CategoryService, ProjectStatisticsService]
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProjectEntity, CategoryEntity])],

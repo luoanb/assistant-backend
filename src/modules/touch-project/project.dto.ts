@@ -5,14 +5,6 @@ import { IsNumber, IsString } from 'class-validator'
 import { PagerDto } from '~/common/dto/pager.dto'
 
 export class ProjectDto {
-  @ApiProperty({ description: '屏幕宽度' })
-  @IsNumber()
-  width: number
-
-  @ApiProperty({ description: '屏幕高度' })
-  @IsNumber()
-  height: number
-
   @ApiProperty({ description: '分类（标签）' })
   @IsString()
   category: string

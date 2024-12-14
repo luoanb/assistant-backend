@@ -5,6 +5,7 @@ import {
   Column,
   CreateDateColumn,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
   VirtualColumn,
 } from 'typeorm'
@@ -52,4 +53,19 @@ export abstract class CompleteEntity extends CommonEntity {
   @ApiProperty({ description: '更新者' })
   @VirtualColumn({ query: alias => `SELECT username FROM sys_user WHERE id = ${alias}.update_by` })
   updater: string
+}
+
+export abstract class Statistics {
+  @PrimaryGeneratedColumn()
+  id: number
+
+  @Column()
+  @Unique(['cite_id'])
+  citeId: number
+
+  @Column({ default: 0 })
+  viewCount: number
+
+  @Column({ default: 0 })
+  collectionCount: number
 }
