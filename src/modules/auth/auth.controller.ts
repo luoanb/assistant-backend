@@ -53,4 +53,18 @@ export class AuthController {
     )
     return { token }
   }
+
+  @Post('login-by-email')
+  @ApiOperation({ summary: '邮箱登录' })
+  async loginByEmail(@Body() dto: RegisterDto, @Ip() ip: string, @Headers('user-agent') ua: string): Promise<LoginToken> {
+    await this.mailerService.checkCode(dto.username, dto.code)
+    // await this.userService.register(dto)
+    const token = await this.authService.login(
+      dto.username,
+      dto.password,
+      ip,
+      ua,
+    )
+    return { token }
+  }
 }
