@@ -12,6 +12,8 @@ import {
 
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 
+import { Public } from '../auth/decorators/public.decorator'
+import { LocalGuard } from '../auth/guards/local.guard'
 import { ResourceGuard } from '../auth/guards/resource.guard'
 
 import { CategoryDto, CategoryQueryDto, CategoryUpdateDto } from './category.dto'
@@ -25,11 +27,15 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) { }
 
   @Get()
+  @UseGuards(LocalGuard)
+  @Public()
   async list(@Query() queryDto: CategoryQueryDto): Promise<any> {
     return this.categoryService.list(queryDto)
   }
 
   @Get(':id')
+  @UseGuards(LocalGuard)
+  @Public()
   async detail(@Param('id') id: number): Promise<any> {
     return this.categoryService.detail(id)
   }

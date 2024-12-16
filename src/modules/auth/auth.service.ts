@@ -18,6 +18,7 @@ import { LoginLogService } from '../system/log/services/login-log.service'
 import { MenuService } from '../system/menu/menu.service'
 import { RoleService } from '../system/role/role.service'
 
+import { AccessTokenEntity } from './entities/access-token.entity'
 import { TokenService } from './services/token.service'
 
 @Injectable()
@@ -31,7 +32,7 @@ export class AuthService {
     private tokenService: TokenService,
     @Inject(SecurityConfig.KEY) private securityConfig: ISecurityConfig,
     @Inject(AppConfig.KEY) private appConfig: IAppConfig,
-  ) {}
+  ) { }
 
   async validateUser(credential: string, password: string): Promise<any> {
     const user = await this.userService.findUserByUserName(credential)
@@ -91,6 +92,39 @@ export class AuthService {
   }
 
   /**
+   * 获取登录JWT(不验证密码/可自行提前验证邮箱登内容)
+   */
+  async loginNoCheck(
+    username: string,
+    ip: string,
+    ua: string,
+  ): Promise<string> {
+    const user = await this.userService.findUserByUserName(username)
+    if (isEmpty(user))
+      throw new BusinessException(ErrorEnum.INVALID_USERNAME_PASSWORD)
+
+    const roleIds = await this.roleService.getRoleIdsByUser(user.id)
+
+    const roles = await this.roleService.getRoleValues(roleIds)
+
+    // 包含access_token和refresh_token
+    const token = await this.tokenService.generateAccessToken(user.id, roles)
+
+    await this.redis.set(genAuthTokenKey(user.id), token.accessToken, 'EX', this.securityConfig.jwtExprire)
+
+    // 设置密码版本号 当密码修改时，版本号+1
+    await this.redis.set(genAuthPVKey(user.id), 1)
+
+    // 设置菜单权限
+    const permissions = await this.menuService.getPermissions(user.id)
+    await this.setPermissionsCache(user.id, permissions)
+
+    await this.loginLogService.create(user.id, ip, ua)
+
+    return token.accessToken
+  }
+
+  /**
    * 效验账号密码
    */
   async checkPassword(username: string, password: string) {
@@ -124,6 +158,17 @@ export class AuthService {
       await this.tokenService.removeAccessToken(accessToken)
     else
       await this.userService.forbidden(user.uid, accessToken)
+  }
+
+  /**
+   * 刷新token
+   * @param accessToken
+   * @returns
+   */
+  async refreshToken(accessToken: string) {
+    const oldToken = await AccessTokenEntity.findOne({ where: { value: accessToken }, relations: ['refreshToken', 'user'] })
+    const token = await this.tokenService.refreshToken(oldToken)
+    return token.accessToken
   }
 
   /**

@@ -24,7 +24,7 @@ export class TokenService {
     private roleService: RoleService,
     @InjectRedis() private redis: Redis,
     @Inject(SecurityConfig.KEY) private securityConfig: ISecurityConfig,
-  ) {}
+  ) { }
 
   /**
    * 根据accessToken刷新AccessToken与RefreshToken
@@ -74,11 +74,11 @@ export class TokenService {
       .add(this.securityConfig.jwtExprire, 'second')
       .toDate()
 
-    await accessToken.save()
-
     // 生成refreshToken
     const refreshToken = await this.generateRefreshToken(accessToken, dayjs())
-
+    const refreshTokenEntity = await RefreshTokenEntity.findOneBy({ value: refreshToken })
+    accessToken.refreshToken = refreshTokenEntity
+    await accessToken.save()
     return {
       accessToken: jwtSign,
       refreshToken,
@@ -129,7 +129,7 @@ export class TokenService {
       })
       isValid = Boolean(res)
     }
-    catch (error) {}
+    catch (error) { }
 
     return isValid
   }

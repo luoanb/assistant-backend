@@ -47,3 +47,17 @@ export class RegisterDto {
   @IsString()
   lang: string
 }
+
+export class LoginRegisterDto {
+  @ApiProperty({ description: '邮箱' })
+  @IsString()
+  username: string
+
+  @ApiProperty({ description: '邮箱验证码' })
+  @IsString()
+  code: string
+
+  @ApiProperty({ description: '语言', examples: ['EN', 'ZH'] })
+  @IsString()
+  lang: string
+}

@@ -1,5 +1,7 @@
-import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Headers, Post, Request, UseGuards } from '@nestjs/common'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
+
+import { ExtractJwt } from 'passport-jwt'
 
 import { ApiResult } from '~/common/decorators/api-result.decorator'
 import { Ip } from '~/common/decorators/http.decorator'
@@ -9,7 +11,8 @@ import { UserService } from '../user/user.service'
 
 import { AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
-import { LoginDto, RegisterDto } from './dto/auth.dto'
+import { LoginDto, LoginRegisterDto, RegisterDto } from './dto/auth.dto'
+import { JwtAuthGuard } from './guards/jwt-auth.guard'
 import { LocalGuard } from './guards/local.guard'
 import { LoginToken } from './models/auth.model'
 import { CaptchaService } from './services/captcha.service'
@@ -55,16 +58,28 @@ export class AuthController {
   }
 
   @Post('login-by-email')
-  @ApiOperation({ summary: '邮箱登录' })
-  async loginByEmail(@Body() dto: RegisterDto, @Ip() ip: string, @Headers('user-agent') ua: string): Promise<LoginToken> {
-    await this.mailerService.checkCode(dto.username, dto.code)
-    // await this.userService.register(dto)
-    const token = await this.authService.login(
+  @ApiOperation({ summary: '邮箱注册/登录' })
+  async loginByEmail(@Body() dto: LoginRegisterDto, @Ip() ip: string, @Headers('user-agent') ua: string): Promise<LoginToken> {
+    // await this.mailerService.checkCode(dto.username, dto.code)
+    const isExist = await this.userService.exist(dto.username)
+    if (!isExist) {
+      await this.userService.register({ ...dto, password: '' })
+    }
+    const token = await this.authService.loginNoCheck(
       dto.username,
-      dto.password,
       ip,
       ua,
     )
+    return { token }
+  }
+
+  @Post('refresh-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '刷新登录' })
+  async refreshToken(@Request() req): Promise<LoginToken> {
+    const getToken = ExtractJwt.fromAuthHeaderAsBearerToken()
+    const oldToken = getToken(req)
+    const token = await this.authService.refreshToken(oldToken)
     return { token }
   }
 }

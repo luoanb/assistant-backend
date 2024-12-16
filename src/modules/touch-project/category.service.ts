@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 
-import { Repository } from 'typeorm'
+import { Like, Repository } from 'typeorm'
 
 import { paginate } from '~/helper/paginate' // 假设您有一个分页助手函数
 
@@ -10,15 +10,35 @@ import { Pagination } from '~/helper/paginate/pagination' // 分页类型
 import { CategoryDto, CategoryQueryDto, CategoryUpdateDto } from './category.dto' // 分类DTO
 import { CategoryEntity } from './category.entity' // 分类实体
 
+export type ObjectProtsProps = Record<string, any>
+
+/**
+ * 快速给Like查询
+ * @param data
+ * @param keys
+ * @returns
+ */
+export function LikeObjectProts<T extends ObjectProtsProps>(data: T, keys: Array<keyof T>) {
+  const res: any = {}
+  for (const key of keys) {
+    if (data[key]) {
+      res[key] = Like(`%${data[key]}%`)
+    }
+  }
+  return res
+}
+
 @Injectable()
 export class CategoryService {
   constructor(
     @InjectRepository(CategoryEntity)
     private categoryRepository: Repository<CategoryEntity>,
-  ) {}
+  ) { }
 
-  async list({ page, pageSize, ...其余查询条件 }: CategoryQueryDto): Promise<Pagination<CategoryEntity>> {
-    return paginate(this.categoryRepository, { page, pageSize, ...其余查询条件 })
+  async list({ page, pageSize, ...props }: CategoryQueryDto): Promise<Pagination<CategoryEntity>> {
+    return paginate(this.categoryRepository.createQueryBuilder('categories').where({
+      ...LikeObjectProts(props, ['name', 'description']),
+    }), { page, pageSize })
   }
 
   async detail(id: number): Promise<CategoryEntity> {

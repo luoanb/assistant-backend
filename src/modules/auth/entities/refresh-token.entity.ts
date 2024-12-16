@@ -3,7 +3,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
@@ -27,6 +26,6 @@ export class RefreshTokenEntity extends BaseEntity {
   @OneToOne(() => AccessTokenEntity, accessToken => accessToken.refreshToken, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
+  // @JoinColumn({ name: 'access_token' })
   accessToken!: AccessTokenEntity
 }
