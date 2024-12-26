@@ -5,7 +5,6 @@ import {
   Column,
   CreateDateColumn,
   PrimaryGeneratedColumn,
-  Unique,
   UpdateDateColumn,
   VirtualColumn,
 } from 'typeorm'
@@ -58,10 +57,6 @@ export abstract class CompleteEntity extends CommonEntity {
 export abstract class Statistics {
   @PrimaryGeneratedColumn()
   id: number
-
-  @Column()
-  @Unique(['cite_id'])
-  citeId: number
 
   @Column({ default: 0 })
   viewCount: number

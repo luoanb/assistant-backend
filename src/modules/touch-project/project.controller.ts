@@ -16,28 +16,27 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ApiResult } from '~/common/decorators/api-result.decorator'
 import { IdParam } from '~/common/decorators/id-param.decorator'
 import { Pagination } from '~/helper/paginate/pagination'
-import { Perm, definePermission } from '~/modules/auth/decorators/permission.decorator'
 
 import { ResourceGuard } from '~/modules/auth/guards/resource.guard'
 
 import { AuthUser } from '../auth/decorators/auth-user.decorator'
 
-import { ProjectDto, ProjectQueryDto, ProjectUpdateDto } from './project.dto'
+import { ProjectCreateDto, ProjectQueryDto, ProjectUpdateDto } from './project.dto'
 import { ProjectEntity } from './project.entity'
 
 import { ProjectService } from './project.service'
 import { ProjectStatisticsEntity } from './project_statistic.entity'
 import { ProjectStatisticsService } from './project_statistic.service'
 
-export const permissions = definePermission('project', {
-  LIST: 'list',
-  CREATE: 'create',
-  READ: 'read',
-  UPDATE: 'update',
-  DELETE: 'delete',
-} as const)
+// export const permissions = definePermission('project', {
+//   LIST: 'list',
+//   CREATE: 'create',
+//   READ: 'read',
+//   UPDATE: 'update',
+//   DELETE: 'delete',
+// } as const)
 
-@ApiTags('Business - Project模块')
+@ApiTags('Business - 项目模块')
 @UseGuards(ResourceGuard)
 @ApiBearerAuth()
 @Controller('projects')
@@ -46,8 +45,8 @@ export class ProjectController {
 
   @Get()
   @ApiOperation({ summary: '获取项目列表' })
-  @ApiResult({ type: [ProjectEntity] })
-  @Perm(permissions.LIST)
+  @ApiResult({ type: [ProjectStatisticsEntity], isPage: true })
+  // @Perm(permissions.LIST)
   async list(@Query() dto: ProjectQueryDto): Promise<Pagination<ProjectStatisticsEntity>> {
     return this.projectStatisticsService.list(dto)
   }
@@ -55,15 +54,15 @@ export class ProjectController {
   @Get(':id')
   @ApiOperation({ summary: '获取项目详情' })
   @ApiResult({ type: ProjectEntity })
-  @Perm(permissions.READ)
+  // @Perm(permissions.READ)
   async detail(@IdParam() id: number): Promise<ProjectStatisticsEntity> {
     return this.projectStatisticsService.incrementViewCount(id)
   }
 
   @Post()
   @ApiOperation({ summary: '创建项目' })
-  @Perm(permissions.CREATE)
-  async create(@Body() dto: Omit<ProjectDto, 'userId'>, @AuthUser() user: IAuthUser): Promise<ProjectEntity> {
+  // @Perm(permissions.CREATE)
+  async create(@Body() dto: ProjectCreateDto, @AuthUser() user: IAuthUser): Promise<ProjectEntity> {
     const item = await this.projectService.create({ ...dto, userId: user.uid })
     await this.projectStatisticsService.incrementViewCount(item.id)
     return item
@@ -71,7 +70,7 @@ export class ProjectController {
 
   @Put(':id')
   @ApiOperation({ summary: '更新项目' })
-  @Perm(permissions.UPDATE)
+  // @Perm(permissions.UPDATE)
   async update(@IdParam() id: number, @Body() dto: ProjectUpdateDto, @AuthUser() user: IAuthUser): Promise<ProjectEntity> {
     // 在更新之前，检查用户是否是项目的所有者
     const project = await this.projectService.detail(id)
@@ -83,7 +82,7 @@ export class ProjectController {
 
   @Delete(':id')
   @ApiOperation({ summary: '删除项目' })
-  @Perm(permissions.DELETE)
+  // @Perm(permissions.DELETE)
   async delete(@IdParam() id: number, @AuthUser() user: IAuthUser): Promise<void> {
     // 在更新之前，检查用户是否是项目的所有者
     const project = await this.projectService.detail(id)

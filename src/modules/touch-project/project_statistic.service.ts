@@ -6,43 +6,50 @@ import { Repository } from 'typeorm'
 import { paginate } from '~/helper/paginate'
 import { Pagination } from '~/helper/paginate/pagination'
 
+import { LikeObjectProts } from '~/utils/sql_query.util'
+
 import { ProjectQueryDto } from './project.dto'
+import { ProjectEntity } from './project.entity'
 import { ProjectStatisticsEntity } from './project_statistic.entity'
 
 @Injectable()
 export class ProjectStatisticsService {
   constructor(
 
+    @InjectRepository(ProjectEntity)
+    private projectRepository: Repository<ProjectEntity>,
     @InjectRepository(ProjectStatisticsEntity)
     private projectStatisticsRepository: Repository<ProjectStatisticsEntity>,
   ) { }
 
   /**
    * 阅读量添加
-   * @param citeId
+   * @param projectId
    */
-  async incrementViewCount(citeId: number): Promise<ProjectStatisticsEntity> {
-    let statistics = await this.projectStatisticsRepository.findOneBy({ citeId })
+  async incrementViewCount(projectId: number): Promise<ProjectStatisticsEntity> {
+    let statistics = await this.projectStatisticsRepository.findOneBy({ project: { id: projectId } })
     if (statistics) {
       statistics.viewCount++
     }
     else {
-      statistics = this.projectStatisticsRepository.create({ citeId, viewCount: 1, collectionCount: 0 })
+      const project = await this.projectRepository.findOneBy({ id: projectId })
+      statistics = this.projectStatisticsRepository.create({ project, viewCount: 1, collectionCount: 0 })
     }
     return await this.projectStatisticsRepository.save(statistics)
   }
 
   /**
    * 收藏量添加
-   * @param citeId
+   * @param projectId
    */
-  async incrementCollectionCount(citeId: number): Promise<ProjectStatisticsEntity> {
-    let statistics = await this.projectStatisticsRepository.findOneBy({ citeId })
+  async incrementCollectionCount(projectId: number): Promise<ProjectStatisticsEntity> {
+    let statistics = await this.projectStatisticsRepository.findOneBy({ project: { id: projectId } })
     if (statistics) {
       statistics.collectionCount++
     }
     else {
-      statistics = this.projectStatisticsRepository.create({ citeId, viewCount: 0, collectionCount: 1 })
+      const project = await this.projectRepository.findOneBy({ id: projectId })
+      statistics = this.projectStatisticsRepository.create({ project, viewCount: 0, collectionCount: 1 })
     }
     return await this.projectStatisticsRepository.save(statistics)
   }
@@ -54,10 +61,12 @@ export class ProjectStatisticsService {
    */
   async list({ page, pageSize, ...other }: ProjectQueryDto): Promise<Pagination<ProjectStatisticsEntity>> {
     return paginate(this.projectStatisticsRepository
-      .createQueryBuilder('statistics')
-      .leftJoinAndSelect('statistics.project', 'touch_project')
-      .where('touch_project.category LIKE :category', { category: `%${other.category}%` })
-      .andWhere('touch_project.name LIKE :name', { name: `%${other.name}%` })
-      .andWhere('touch_project.user_id LIKE :user_id', { user_id: `%${other.userId}%` }), { page, pageSize }) // 假设您的paginate函数接受仓库和查询DTO
+      .createQueryBuilder('project_statistic')
+      .leftJoinAndSelect('project_statistic.project', 'project')
+      .leftJoinAndSelect('project.user', 'user')
+      .where({
+        ...LikeObjectProts({ id: other.userId }, ['id'], 'usler.'),
+        ...LikeObjectProts(other, ['name', 'category'], 'project.'),
+      }), { page, pageSize }) // 假设您的paginate函数接受仓库和查询DTO
   }
 }
