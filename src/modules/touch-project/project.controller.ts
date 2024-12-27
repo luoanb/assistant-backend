@@ -41,7 +41,10 @@ import { ProjectStatisticsService } from './project_statistic.service'
 @ApiBearerAuth()
 @Controller('projects')
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService, private readonly projectStatisticsService: ProjectStatisticsService) { }
+  constructor(
+    private readonly projectService: ProjectService,
+    private readonly projectStatisticsService: ProjectStatisticsService,
+  ) { }
 
   @Get()
   @ApiOperation({ summary: '获取项目列表' })

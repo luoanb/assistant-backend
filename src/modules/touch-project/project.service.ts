@@ -6,6 +6,8 @@ import { paginate } from '~/helper/paginate' // 假设您有一个分页助手�
 
 import { Pagination } from '~/helper/paginate/pagination' // 分页类型
 
+import { UserEntity } from '../user/user.entity'
+
 import { ProjectDto, ProjectQueryDto, ProjectUpdateDto } from './project.dto' // 项目DTO
 
 import { ProjectEntity } from './project.entity' // 项目实体
@@ -13,6 +15,8 @@ import { ProjectEntity } from './project.entity' // 项目实体
 @Injectable()
 export class ProjectService {
   constructor(
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
     @InjectRepository(ProjectEntity)
     private projectRepository: Repository<ProjectEntity>,
   ) { }
@@ -29,8 +33,9 @@ export class ProjectService {
     return project
   }
 
-  async create(dto: ProjectDto): Promise<ProjectEntity> {
-    const project = this.projectRepository.create(dto)
+  async create({ userId, ...dto }: ProjectDto): Promise<ProjectEntity> {
+    const author = await this.userRepository.findOneBy({ id: userId })
+    const project = this.projectRepository.create({ ...dto, user: author })
     await this.projectRepository.save(project)
     return project
   }

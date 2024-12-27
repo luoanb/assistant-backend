@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
+import { UserEntity } from '../user/user.entity'
+
 import { CategoryController } from './category.controller'
 import { CategoryEntity } from './category.entity'
 import { CategoryService } from './category.service'
@@ -14,7 +16,7 @@ import { ProjectStatisticsService } from './project_statistic.service'
 const services = [ProjectService, CategoryService, ProjectStatisticsService]
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ProjectEntity, CategoryEntity, ProjectStatisticsEntity])],
+  imports: [TypeOrmModule.forFeature([ProjectEntity, CategoryEntity, ProjectStatisticsEntity, UserEntity])],
   controllers: [ProjectController, CategoryController],
   providers: [...services],
   exports: [TypeOrmModule, ...services],

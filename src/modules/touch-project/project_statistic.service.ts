@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common'
 
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { FindOptionsOrder, Repository } from 'typeorm'
 
-import { paginate } from '~/helper/paginate'
+import { resolveOptions } from '~/helper/paginate'
+import { createPaginationObject } from '~/helper/paginate/create-pagination'
 import { Pagination } from '~/helper/paginate/pagination'
 
 import { LikeObjectProts } from '~/utils/sql_query.util'
@@ -59,14 +60,36 @@ export class ProjectStatisticsService {
    * @param param
    * @returns
    */
-  async list({ page, pageSize, ...other }: ProjectQueryDto): Promise<Pagination<ProjectStatisticsEntity>> {
-    return paginate(this.projectStatisticsRepository
-      .createQueryBuilder('project_statistic')
-      .leftJoinAndSelect('project_statistic.project', 'project')
-      .leftJoinAndSelect('project.user', 'user')
-      .where({
-        ...LikeObjectProts({ id: other.userId }, ['id'], 'usler.'),
-        ...LikeObjectProts(other, ['name', 'category'], 'project.'),
-      }), { page, pageSize }) // 假设您的paginate函数接受仓库和查询DTO
+  async list({ page: pageIndex, pageSize, ...other }: ProjectQueryDto): Promise<Pagination<ProjectStatisticsEntity>> {
+    const newsOrder: FindOptionsOrder<ProjectStatisticsEntity> = {
+      project: {
+        updatedAt: other.order || 'DESC',
+      },
+    }
+    const hotOrder: FindOptionsOrder<ProjectStatisticsEntity> = {
+      viewCount: other.order || 'DESC',
+    }
+    const [page, limit] = resolveOptions({ page: pageIndex, pageSize })
+    const [items, total] = await this.projectStatisticsRepository.findAndCount({
+      skip: limit * (page - 1),
+      take: limit,
+      relations: ['project', 'project.user'],
+
+      where: {
+        project: {
+          ...LikeObjectProts(other, ['name', 'category']),
+          user: {
+            ...LikeObjectProts({ id: other.userId }, ['id']),
+          },
+        },
+      },
+      order: other.isNews ? newsOrder : hotOrder,
+    })
+    return createPaginationObject<ProjectStatisticsEntity>({
+      items,
+      totalItems: total,
+      currentPage: page,
+      limit,
+    })
   }
 }

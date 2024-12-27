@@ -30,4 +30,8 @@ export class ProjectDto extends ProjectCreateDto {
 
 export class ProjectUpdateDto extends PartialType(ProjectDto) { }
 
-export class ProjectQueryDto extends IntersectionType(PagerDto, ProjectDto) { }
+export class ProjectQueryDto extends IntersectionType(PagerDto, ProjectDto) {
+  @IsOptional()
+  @ApiProperty({ description: '是否最新排序' })
+  isNews?: boolean
+}

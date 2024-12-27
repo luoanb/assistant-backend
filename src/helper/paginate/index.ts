@@ -13,7 +13,7 @@ import { Pagination } from './pagination'
 const DEFAULT_LIMIT = 10
 const DEFAULT_PAGE = 1
 
-function resolveOptions(
+export function resolveOptions(
   options: IPaginationOptions,
 ): [number, number, PaginationTypeEnum] {
   const { page, pageSize, paginationType } = options
